@@ -1363,11 +1363,12 @@ get_modules <- function(steiner.ig, terminals, out.file = 'examples/SFP_edges.cs
 # 
 # return an edge sequence of the steiner forest
 set_cover_mst <- function(G, terminals) {
-  
+
   # G : the weighted/unweighted undirected graph saved in an igraph object
   # terminals : the terminal set saved in a nested list
-  
+
   suppressMessages(library(parallel))
+  n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = detectCores()))
   mst.ll <- mclapply(terminals, function(ter) {
     ter.nbr <- Reduce(union, lapply(ter, function(v) {
       return(as_ids(neighbors(graph = G, v = v, mode = 'all')))}))
@@ -1387,7 +1388,7 @@ set_cover_mst <- function(G, terminals) {
                             v = setdiff(as_ids(V(ter.mst)), 
                                         leaves[leaves %!in% ter])))
     # remove the nodes not belonging to the terminal and get the edges
-  }, mc.cores = detectCores() - 1)
+  }, mc.cores = n_cores)
   
   Ugraph <- Reduce(`%u%`, mst.ll) # get the union of all the 
   # minimum spanning trees
@@ -1432,6 +1433,7 @@ set_cover_mst <- function(G, terminals) {
 
 # building a relatively sparse network using several times of maximum matching
 global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
+  n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = detectCores()))
   genes <- unique(c(df1$node1, df2$node1, df2$node2))
   cat ('There are in total', length(genes), 'genes.\n')
   
@@ -1494,7 +1496,7 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
       } else {
         list(node1 = n1, node2 = n2)
       }
-    }, mc.cores = detectCores()), fill = T) %>%
+    }, mc.cores = n_cores), fill = T) %>%
       distinct()
     
     rownames(matching.df) <- NULL
@@ -1517,7 +1519,7 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
                                         u.edges <- incident_edges(G, u, 'all')
                                         return(list(node1 = ends(G, u.edges[[1]][which.max(u.edges[[1]]$weight)])[1, 1], 
                                                     node2 = ends(G, u.edges[[1]][which.max(u.edges[[1]]$weight)])[1, 2]))
-                                      }, mc.cores = detectCores()), fill = T))
+                                      }, mc.cores = n_cores), fill = T))
   } # all edges linked to the uncovered cells
   
   rownames(selected.edges.df) <- paste0(selected.edges.df$node1, '_', 
