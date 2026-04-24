@@ -1367,6 +1367,7 @@ set_cover_mst <- function(G, terminals) {
   # G : the weighted/unweighted undirected graph saved in an igraph object
   # terminals : the terminal set saved in a nested list
 
+  `%!in%` <- Negate(`%in%`)
   suppressMessages(library(parallel))
   n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = detectCores()))
   mst.ll <- mclapply(terminals, function(ter) {
@@ -1433,6 +1434,7 @@ set_cover_mst <- function(G, terminals) {
 
 # building a relatively sparse network using several times of maximum matching
 global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
+  `%!in%` <- Negate(`%in%`)
   n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = detectCores()))
   genes <- unique(c(df1$node1, df2$node1, df2$node2))
   cat ('There are in total', length(genes), 'genes.\n')
