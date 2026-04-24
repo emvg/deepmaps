@@ -1509,13 +1509,14 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
   
   # add the remaining uncovered cells
   if (length(tmp.cells) > 0) {
-    selected.edges.df <- dplyr::union(selected.edges.df, 
-                                      rbindlist(mclapply(tmp.cells, function(u) {
-                                        u.ter <- cell.ter[[u]]
+    selected.edges.df <- dplyr::union(selected.edges.df,
+                                      rbindlist(lapply(tmp.cells, function(u) {
                                         u.edges <- incident_edges(G, u, 'all')
-                                        return(list(node1 = ends(G, u.edges[[1]][which.max(u.edges[[1]]$weight)])[1, 1], 
-                                                    node2 = ends(G, u.edges[[1]][which.max(u.edges[[1]]$weight)])[1, 2]))
-                                      }, mc.cores = n_cores), fill = T))
+                                        if (length(u.edges[[1]]) == 0) return(NULL)
+                                        best <- u.edges[[1]][which.max(u.edges[[1]]$weight)]
+                                        list(node1 = ends(G, best)[1, 1],
+                                             node2 = ends(G, best)[1, 2])
+                                      }), fill = T))
   } # all edges linked to the uncovered cells
   
   rownames(selected.edges.df) <- paste0(selected.edges.df$node1, '_', 
