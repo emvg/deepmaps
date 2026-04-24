@@ -630,6 +630,7 @@ get_gene_module <-
       
       
       n.matching <- 10 # the number of predicting maximum matching
+      # set thdf2 = 0.3 to reduce the number of edges ?
       m<-inp(GAS, HGT_result[['attention']], HGT_result[['cell_hgt_matrix']], HGT_result[['feature_hgt_matrix']], l=1.2)
       df1 <- m[[1]]
       df2 <- m[[2]]
@@ -644,8 +645,7 @@ get_gene_module <-
                           out.file = out.file)
       co<-list()
       for (i in unique(mods$terminal)){
-        a<-as.numeric(unlist(strsplit(as.character(unique(mods$terminal)[i]), split ='[.]'))[1])-1
-        co[[paste0('ct_',a)]]<-unique(mods$steiner_node[mods$terminal==i])
+        co[[paste0('ct_', i)]]<-unique(mods$steiner_node[mods$terminal==i])
       }
       
     }else{
