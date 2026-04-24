@@ -591,7 +591,7 @@ run_HGT <- function(GAS,result_dir,data_type,envPath=NULL,lr=NULL, epoch=NULL, n
   cat(lr, epoch, n_hid, n_heads, cuda)
   if (!is.null(envPath)){use_condaenv(envPath)}
   list_in <- assign("list_in", list(lr=lr, epoch=epoch, n_hid=n_hid, n_heads=n_heads, result_dir=result_dir, cuda=cuda, data_type=data_type, cell_gene=GAS, gene_name=rownames(GAS), cell_name=colnames(GAS)), envir = .GlobalEnv) 
-    source_python('./arg.py')
+    source_python('deepmaps/arg.py')
     cell_hgt_matrix <- py$cell_matrix
     gene_hgt_matrix <- py$gene_matrix
     attention <- py$df2
@@ -624,7 +624,7 @@ run_HGT <- function(GAS,result_dir,data_type,envPath=NULL,lr=NULL, epoch=NULL, n
 
 get_gene_module <-
   function(obj, GAS, att, cutoff = 1.6, method = NULL) {
-    if (method == 'SFp'){
+    if (method == 'SFP'){
 
       `%!in%` <- Negate(`%in%`) # define the negation of %in%
       
@@ -1532,10 +1532,8 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
 } 
 
 
-inp<-function(GAS = GAS, att , cell_hgt_matrixPath, genePath, wdf1=1, thdf2=0, l=1.2){
-  GAS<-read.table(GASpath)
+inp<-function(GAS = GAS, att , cell_hgt_matrix, gene_hgt_matrix, wdf1=1, thdf2=0, l=1.2){
   kidney<-CreateSeuratObject(GAS)
-  cell_hgt_matrix <- read.table(cell_hgt_matrixPath)
   cell_hgt_matrix <- as.matrix(cell_hgt_matrix)
   rownames(cell_hgt_matrix) <-colnames(GAS)
   kidney<-kidney[,colnames(GAS)]
@@ -1549,8 +1547,8 @@ inp<-function(GAS = GAS, att , cell_hgt_matrixPath, genePath, wdf1=1, thdf2=0, l
   kidney <- FindVariableFeatures(kidney, selection.method = "vst", nfeatures = 2000)
   kidney<-ScaleData(kidney,features=VariableFeatures(kidney))
   kidney <- RunUMAP(kidney, reduction = 'HGT', dims = 1:ncol(cell_hgt_matrix), reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
-  kidney <- FindNeighbors(kidney, reduction = "HGT",dims=1:ncol(cell_hgt_matrix))
-  kidney <- FindClusters(kidney,resolution = 0.5)
+  kidney <- FindNeighbors(kidney, reduction = "HGT", graph.name = c("HGT_nn", "HGT_snn"), dims=1:ncol(cell_hgt_matrix))
+  kidney <- FindClusters(kidney, graph.name = "HGT_snn", resolution = 0.5)
   sil1<-silhouette(as.numeric(Idents(kidney)), dist(cell_hgt_matrix))
   print(summary(sil1)$ avg.width)
   sil2<-silhouette(as.numeric(Idents(kidney)), dist(kidney@reductions$umap.rna@cell.embeddings))
@@ -1560,7 +1558,7 @@ inp<-function(GAS = GAS, att , cell_hgt_matrixPath, genePath, wdf1=1, thdf2=0, l
   #ARI<-igraph::compare(Idents(kidney),as.factor(label),method="adjusted.rand")
   #print(ARI)
   graph.out <-Idents(kidney)
-  att<-read.csv(attPath)
+  att<-as.data.frame(att)
   nhead<-ncol(att)
   gene_name<-rownames(GAS)[att$gene+1]
   cell_name<-colnames(GAS)[att$cell+1]
@@ -1595,7 +1593,7 @@ inp<-function(GAS = GAS, att , cell_hgt_matrixPath, genePath, wdf1=1, thdf2=0, l
   n2<-unlist(mapply(function(x,y) x[y],link$node2,t))
   w<-unlist(mapply(function(x,y) x[y],link$weight,t))
   df1<-data.frame('node1'=n1,'node2'=n2,'weight'=w*wdf1)
-  gene_cor<-read.table(genePath)
+  gene_cor<-as.data.frame(gene_hgt_matrix)
   rownames(gene_cor)<-rownames(GAS)
   gene_cor<-gene_cor[unique(att$gene_name),]
   
