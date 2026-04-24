@@ -1338,7 +1338,7 @@ get_modules <- function(steiner.ig, terminals, out.file = 'examples/SFP_edges.cs
     # rearrange the order of edge ends
     suppressMessages(library(data.table))
     xx.df <- rbindlist(apply(x.df, 1, function(y) {
-      ifelse (y[1] %in% terminals[[i]], return(y), return(list(y[2], y[1])))
+      if (y[1] %in% terminals[[i]]) y else list(y[2], y[1])
     }), fill = F)
     
     colnames(xx.df) <- c('terminal_node', 'steiner_node') # name the columns
@@ -1489,10 +1489,12 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
     matching.df <- rbindlist(mclapply(1:nrow(matching.df), function(i) {
       n1 <- matching.df[i, 1]
       n2 <- matching.df[i, 2]
-      
-      ifelse (n1 %!in% genes, return(list(node1 = n2, node2 = n1)), 
-              return(list(node1 = n1, node2 = n2)))
-    }, mc.cores = detectCores()), fill = T) %>% 
+      if (n1 %!in% genes) {
+        list(node1 = n2, node2 = n1)
+      } else {
+        list(node1 = n1, node2 = n2)
+      }
+    }, mc.cores = detectCores()), fill = T) %>%
       distinct()
     
     rownames(matching.df) <- NULL
