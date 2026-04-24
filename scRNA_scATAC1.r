@@ -1488,16 +1488,12 @@ global_matching_graph <- function(df1, df2, n.matching = 10, cells, terminals) {
     matching.df <- data.frame(node1 = names(matching.es), 
                               node2 = matching.es)
     
-    matching.df <- rbindlist(mclapply(1:nrow(matching.df), function(i) {
-      n1 <- matching.df[i, 1]
-      n2 <- matching.df[i, 2]
-      if (n1 %!in% genes) {
-        list(node1 = n2, node2 = n1)
-      } else {
-        list(node1 = n1, node2 = n2)
-      }
-    }, mc.cores = n_cores), fill = T) %>%
-      distinct()
+    swap <- matching.df$node1 %!in% genes
+    matching.df <- data.frame(
+      node1 = ifelse(swap, matching.df$node2, matching.df$node1),
+      node2 = ifelse(swap, matching.df$node1, matching.df$node2),
+      stringsAsFactors = FALSE
+    ) %>% distinct()
     
     rownames(matching.df) <- NULL
     selected.edges.df <- dplyr::union(selected.edges.df, matching.df) # add new edges
