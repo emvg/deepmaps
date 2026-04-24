@@ -377,7 +377,7 @@ CalGenePeakScore <-
   function(peak_count_matrix, organism = "GRCh38") {
     pbmc_peak <- peak_count_matrix
     n <- nrow(pbmc_peak)
-    dia <- diag(n)
+    dia <- Diagonal(n)
     rownames(dia) <- rownames(pbmc_peak)
     colnames(dia) <- 1:ncol(dia)
     gene_peak <-
