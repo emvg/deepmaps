@@ -878,7 +878,7 @@ Calregulon <-
         #print(length(TF))
         if (length(TF) > 0) {
           for (k in 1:length(TF)) {
-            if (length(intersect(TF[k], rownames(GAS))) > 50) {
+            if (length(intersect(TF, rownames(GAS))) > 50) {
               TFinGAS <- T
               if (TF[k] %in% rownames(GAS)) {
                 #print(TF[k])
