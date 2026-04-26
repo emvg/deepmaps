@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 import argparse
 
+import lisa.core.data_interface as di
+di.DataInterface.data_path = '/workdir/vangysel/Deepmaps/lisa_data'
+os.makedirs('/workdir/vangysel/Deepmaps/lisa_data', exist_ok=True)
+
 parser = argparse.ArgumentParser(description='DeepMAPS - Run LISA2')
  
 parser.add_argument("--path", help="Gene module path", default="")
